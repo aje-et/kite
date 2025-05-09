@@ -110,7 +110,7 @@ def shutdown_scheduler(exception=None):
         scheduler.shutdown()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5001))
+    port = int(os.environ.get('PORT', 443))
     try:
         app.run(host='0.0.0.0', port=port, debug=True)
     except KeyboardInterrupt:
