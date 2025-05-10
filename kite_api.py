@@ -3,7 +3,11 @@ import json
 import os
 import datetime
 from kiteconnect import KiteConnect
-from util import load_session, logger
+from util import load_session
+from logger import get_logger
+
+# Initialize logger
+logger = get_logger()
 
 class KiteAPI:
     # Constants
@@ -94,3 +98,4 @@ class KiteAPI:
         except Exception as e:
             logger.error(f"Error fetching positions: {str(e)}")
             return {"status": "error", "message": str(e)}
+

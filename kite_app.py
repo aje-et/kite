@@ -1,59 +1,63 @@
+# Standard library imports
+import os
+
+# Third-party imports
+from dotenv import load_dotenv
+
+# Load environment variables first - before any other imports that might use them
+load_dotenv()
+
+# Third-party imports that don't depend on environment variables
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import os
-from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
-from util import generate_login_url, generate_access_token, validate_access_code, check_order_status, hourly_task, logger
 
-# Load environment variables
-load_dotenv()
+# Local application imports - after environment variables are loaded
+from logger import get_logger
+from util import (
+    generate_login_url, 
+    generate_access_token, 
+    validate_access_code, 
+    order_status_check, 
+    hourly_health_check
+)
 
 # Initialize Flask app
 app = Flask("Kite App")
 CORS(app)  # Enable CORS for all routes
+
+# Initialize logger after environment variables are loaded
+logger = get_logger()
 
 # Initialize scheduler
 scheduler = BackgroundScheduler()
 
 # Track execution counts
 execution_counts = {
-    'order_status_job': 0,
-    'hourly_maintenance_job': 0
+    'hourly_health_check_job': 0,
+    'hourly_health_check_job_limit': 15
 }
 
 # Wrapper functions to limit executions
-def limited_check_order_status():
-    execution_counts['order_status_job'] += 1
-    logger.info(f"Running order status check {execution_counts['order_status_job']}/10")
+def limited_hourly_health_check():
+    execution_counts['hourly_health_check_job'] += 1
+    logger.info(f"Running hourly health check {execution_counts['hourly_health_check_job']}/{execution_counts['hourly_health_check_job_limit']}")
     
     # Run the actual function
-    result = check_order_status()
+    result = hourly_health_check()
     
     # Remove the job after max executions
-    if execution_counts['order_status_job'] >= 2:
-        logger.info("Reached maximum executions for order status job, removing from scheduler")
-        scheduler.remove_job('order_status_job')
-    
-    return result
-
-def limited_hourly_task():
-    execution_counts['hourly_maintenance_job'] += 1
-    logger.info(f"Running hourly task {execution_counts['hourly_maintenance_job']}/5")
-    
-    # Run the actual function
-    result = hourly_task()
-    
-    # Remove the job after max executions
-    if execution_counts['hourly_maintenance_job'] >= 5:
-        logger.info("Reached maximum executions for hourly task, removing from scheduler")
-        scheduler.remove_job('hourly_maintenance_job')
+    if execution_counts['hourly_health_check_job'] >= execution_counts['hourly_health_check_job_limit']:
+        logger.info("Reached maximum executions for hourly health check job, removing from scheduler")
+        scheduler.remove_job('hourly_health_check_job')
     
     return result
 
 # Add jobs with wrapper functions
-scheduler.add_job(limited_check_order_status, 'interval', seconds=20, id='order_status_job')
-# Uncomment to enable hourly task
-# scheduler.add_job(limited_hourly_task, 'interval', hours=1, id='hourly_maintenance_job')
+scheduler.add_job(limited_hourly_health_check, 'interval', seconds=20, id='order_status_job')
+
+# Schedule hourly task to run at 15 minutes past each hour (HH:15)
+scheduler.add_job(limited_hourly_health_check, 'cron', minute=15, id='hourly_health_check_job')
 
 # Start the scheduler immediately when the app is initialized
 logger.info("Starting scheduler for periodic tasks")

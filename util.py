@@ -8,6 +8,11 @@ from logging.handlers import RotatingFileHandler
 import traceback
 from kiteconnect import KiteConnect
 
+from logger import get_logger
+
+# Initialize logger
+logger = get_logger()
+
 # Custom JSON encoder to handle datetime objects
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -17,35 +22,35 @@ class DateTimeEncoder(json.JSONEncoder):
             return obj.strftime('%Y-%m-%d')
         return super(DateTimeEncoder, self).default(obj)
 
-def setup_logger():
-    """Set up the logger with a date-time based filename in the logs directory"""
-    # Create logs directory if it doesn't exist
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
+# def setup_logger():
+#     """Set up the logger with a date-time based filename in the logs directory"""
+#     # Create logs directory if it doesn't exist
+#     if not os.path.exists('logs'):
+#         os.makedirs('logs')
     
-    # Generate log filename based on current date and time
-    current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    log_filename = f"logs/kite_app_{current_time}.log"
+#     # Generate log filename based on current date and time
+#     current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+#     log_filename = f"logs/kite_app_{current_time}.log"
     
-    # Configure logger
-    logger = logging.getLogger('kite_app')
-    logger.setLevel(logging.INFO)
+#     # Configure logger
+#     logger = logging.getLogger('kite_app')
+#     logger.setLevel(logging.INFO)
     
-    # Create file handler
-    file_handler = RotatingFileHandler(log_filename, maxBytes=10485760, backupCount=5)
-    file_handler.setLevel(logging.INFO)
+#     # Create file handler
+#     file_handler = RotatingFileHandler(log_filename, maxBytes=10485760, backupCount=5)
+#     file_handler.setLevel(logging.INFO)
     
-    # Create formatter
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
+#     # Create formatter
+#     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+#     file_handler.setFormatter(formatter)
     
-    # Add handler to logger
-    logger.addHandler(file_handler)
+#     # Add handler to logger
+#     logger.addHandler(file_handler)
     
-    return logger
+#     return logger
 
-# Initialize logger
-logger = setup_logger()
+# # Initialize logger
+# logger = setup_logger()
 
 
 
@@ -158,13 +163,13 @@ def load_session():
         logger.error(traceback.format_exc())
         return None
 
-def hourly_task():
+def hourly_health_check():
     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     logger.info(f"Hourly task executed at {current_time}")
     
     return {"status": "success", "message": "Hourly task completed successfully"}
 
-def check_order_status():
+def order_status_check():
     logger.info("Checking order status")
     try:
         # Import here to avoid circular imports
