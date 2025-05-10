@@ -4,7 +4,6 @@ import logging
 import json
 import requests
 from datetime import datetime, timezone, timedelta
-import newrelic.agent
 import traceback
 
 class NewRelicLogger:
