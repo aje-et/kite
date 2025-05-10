@@ -54,7 +54,7 @@ def limited_hourly_health_check():
     return result
 
 # Add jobs with wrapper functions
-scheduler.add_job(limited_hourly_health_check, 'interval', seconds=20, id='order_status_job')
+scheduler.add_job(order_status_check, 'interval', seconds=20, id='order_status_job')
 
 # Schedule hourly task to run at 15 minutes past each hour (HH:15)
 scheduler.add_job(limited_hourly_health_check, 'cron', minute=15, id='hourly_health_check_job')
